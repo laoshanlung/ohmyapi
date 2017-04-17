@@ -17,7 +17,16 @@ describe('Route', () => {
         },
         {},
         {},
-        {}
+        {
+          id: {
+            numericality: {
+              onlyInteger: true
+            }
+          },
+          name: {
+            default: 'meh'
+          }
+        }
       ]);
 
       expect(_.map(routes, 'path')).to.eql([

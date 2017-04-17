@@ -62,5 +62,25 @@ describe('ohmyapi', () => {
         })
       });
     });
+
+    it('should filter request args', () => {
+      return callApi(app, {
+        path: '/api/users/1',
+        data: {
+          test: 1
+        },
+        method: 'get'
+      }).then((res) => {
+        expect(res.body).to.eql({
+          data: {
+            id: 1,
+            name: 'meh'
+          },
+          success: true,
+          error: null
+        });
+      });
+    });
+
   });
 });

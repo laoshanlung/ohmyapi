@@ -2,7 +2,8 @@ const Route = require('./Route'),
       _ = require('lodash'),
       fs = require('fs'),
       engines = require('./engines'),
-      validators = require('./validators');
+      validators = require('./validators'),
+      filters = require('./filters');
 
 class Builder {
   constructor(routes) {
@@ -53,6 +54,24 @@ class Builder {
     return this;
   }
 
+  /**
+   * filter('default', {}) -> set the filter to default
+   * filter(function(values, args, options) {}) -> custom filter
+   */
+  filter(name, options = {}) {
+    if (_.isFunction(name)) {
+      this._filter = name;
+    } else if (_.isString(name)) {
+      const filter = filters[name];
+
+      if (!filter) throw new Error(`Filter ${name} is not found`);
+
+      this._filter = filter;
+    }
+
+    return this;
+  }
+
   init() {
     if (!this._engine) {
       this.engine('express', {
@@ -64,8 +83,13 @@ class Builder {
       this.validator('default');
     }
 
+    if (!this._filter) {
+      this.filter('default');
+    }
+
     this.routes = Route.loadRoutes(this.pathToLoadRoutes, {
-      validate: this._validator
+      validate: this._validator,
+      filter: this._filter
     });
 
     return this._engine();
