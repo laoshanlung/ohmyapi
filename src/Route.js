@@ -11,6 +11,11 @@ const REQUIRED_OPTIONS = [
   'handle'
 ];
 
+function isOptionalFunction(value) {
+  if (!value) return true;
+  return _.isFunction(value);
+}
+
 const OPTIONS = {
   path: {
     required: true,
@@ -21,10 +26,19 @@ const OPTIONS = {
     type: _.isFunction
   },
   validate: {
-    type: _.isFunction
+    type: isOptionalFunction
   },
   filter: {
-    type: _.isFunction
+    type: isOptionalFunction
+  },
+  authenticate: {
+    type: function(value) {
+      if (_.isBoolean(value)) return value;
+      return isOptionalFunction(value);
+    }
+  },
+  authorize: {
+    type: isOptionalFunction
   },
   args: {
     type: function(value) {
@@ -37,6 +51,17 @@ const OPTIONS = {
     default: 'get'
   }
 };
+
+class Unauthenticated extends Error {
+  constructor(props) {
+    super(props);
+
+    this.message = 'Unauthenticated request';
+    this.status = 403;
+    this.code = 403;
+    this.data = null;
+  }
+}
 
 class Route {
   constructor(options = {}) {
@@ -73,14 +98,21 @@ class Route {
       args,
       handle,
       validate,
-      filter
+      filter,
+      authenticate,
+      authorize
     } = this;
 
-    if (filter) {
-      input = filter(input, args, ctx);
-    }
-
     return Promise.try(() => {
+      if (filter) {
+        input = filter(input, args, ctx);
+      }
+    }).then(() => {
+      if (!authenticate) return true;
+      return authenticate(input, ctx);
+    }).then((result) => {
+      if (!result) throw new Unauthenticated;
+    }).then(() => {
       if (validate) return validate(input, args, ctx);
       return true;
     }).then(() => {
@@ -107,7 +139,7 @@ function loadRoutes(dirname, root) {
   .flatten().value();
 }
 
-Route.loadRoutes = function(dirname, routeOptions = {}) {
+Route.loadRoutes = function(dirname, routeOptions) {
   const routes = loadRoutes(dirname, dirname);
 
   return routes.map((route) => {
@@ -115,7 +147,11 @@ Route.loadRoutes = function(dirname, routeOptions = {}) {
     if (path.charAt(0) !== '/') path = '/' + path;
     route.path = path;
 
-    return Object.assign(route, routeOptions);
+    if (_.isFunction(routeOptions)) {
+      Object.assign(route, routeOptions(route));
+    }
+
+    return route;
   }).map((route) => {
     return new Route(route);
   });

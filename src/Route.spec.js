@@ -15,7 +15,11 @@ describe('Route', () => {
             presence: true
           }
         },
-        {},
+        {
+          authenticated: {
+            default: false
+          }
+        },
         {},
         {
           id: {

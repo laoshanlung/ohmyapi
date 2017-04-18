@@ -37,18 +37,18 @@ class Builder {
   }
 
   /**
-   * validator('default', {}) -> set the validator to default
-   * validator(function(values, args, options) {}) -> custom validator
+   * validate('default', {}) -> set the validator to default
+   * validate(function(values, args, options) {}) -> custom validator
    */
-  validator(name, options = {}) {
+  validate(name, options = {}) {
     if (_.isFunction(name)) {
-      this._validator = name;
+      this._validate = name;
     } else if (_.isString(name)) {
-      const validator = validators[name];
+      const validate = validators[name];
 
-      if (!validator) throw new Error(`Validator ${name} is not found`);
+      if (!validate) throw new Error(`${name} is not a valid validate function`);
 
-      this._validator = validator;
+      this._validate = validate;
     }
 
     return this;
@@ -72,6 +72,25 @@ class Builder {
     return this;
   }
 
+  authenticate(fn) {
+    if (!_.isFunction(fn)) throw new Error('Authenticate must be a function');
+
+    this._authenticate = fn;
+
+    return this;
+  }
+
+  authorize(auth) {
+    if (
+      !_.isFunction(auth) &&
+      !_.isObject(auth)
+    ) throw new Error('Authorize must be an array, an object or a function');
+
+    this._authorize = auth;
+
+    return this;
+  }
+
   init() {
     if (!this._engine) {
       this.engine('express', {
@@ -79,17 +98,27 @@ class Builder {
       });
     }
 
-    if (!this._validator) {
-      this.validator('default');
+    if (!this._validate) {
+      this.validate('default');
     }
 
     if (!this._filter) {
       this.filter('default');
     }
 
-    this.routes = Route.loadRoutes(this.pathToLoadRoutes, {
-      validate: this._validator,
-      filter: this._filter
+    this.routes = Route.loadRoutes(this.pathToLoadRoutes, (route) => {
+      let authenticate = this._authenticate;
+      if (_.isFunction(route.authenticate)) {
+        authenticate = route.authenticate;
+      } else if (!route.authenticate) {
+        authenticate = null;
+      }
+
+      return {
+        validate: this._validate,
+        filter: this._filter,
+        authenticate
+      };
     });
 
     return this._engine();

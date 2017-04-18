@@ -16,6 +16,9 @@ describe('ohmyapi', () => {
                 .engine(engine, {
                   prefix: '/api'
                 })
+                .authenticate((args, ctx) => {
+                  return args.authenticated;
+                })
                 .init();
       });
 
@@ -80,6 +83,40 @@ describe('ohmyapi', () => {
             data: {
               id: 1,
               name: 'meh'
+            },
+            success: true,
+            error: null
+          });
+        });
+      });
+
+      it('should reject unauthenticated requests', () => {
+        return callApi(app, {
+          path: '/api/users/1/comments',
+          method: 'get'
+        }).then((res) => {
+          expect(res.body).to.eql({
+            data: null,
+            success: false,
+            error: {
+              message: 'Unauthenticated request',
+              data: null
+            }
+          });
+        });
+      });
+
+      it('should accept authenticated requests', () => {
+        return callApi(app, {
+          path: '/api/users/1/comments',
+          method: 'get',
+          data: {
+            authenticated: true
+          }
+        }).then((res) => {
+          expect(res.body).to.eql({
+            data: {
+              authenticated: true
             },
             success: true,
             error: null
