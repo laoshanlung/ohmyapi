@@ -1,22 +1,12 @@
-const _ = require('lodash');
+const autoParse = require('auto-parse'),
+      _ = require('lodash');
 
 module.exports = function(input, args, options) {
-  input = _.chain(input).mapValues((value, attr) => {
-    const attrConstraints = args[attr];
-    if (!attrConstraints) return undefined;
+  input = autoParse(input);
 
-    // boolean
-    if (attrConstraints.boolean) return JSON.parse(value);
+  const valid = _.keys(args);
 
-    // number
-    if (attrConstraints.numericality) {
-      const numericality = attrConstraints.numericality;
-      if (numericality.onlyInteger) return parseInt(value, 10);
-      return parseFloat(value);
-    }
-
-    return value;
-  }).omitBy(_.isUndefined).value();
+  input = _.pick(input, valid);
 
   _.forEach(args, (attrConstraints, attr) => {
     // Default value

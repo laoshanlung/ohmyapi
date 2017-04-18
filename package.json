@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/laoshanlung/ohmyapi#readme",
   "dependencies": {
+    "auto-parse": "^1.3.0",
     "bluebird": "^3.5.0",
     "body-parser": "^1.17.1",
     "cookie-parser": "^1.4.3",
