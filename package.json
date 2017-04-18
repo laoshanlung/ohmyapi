@@ -4,7 +4,7 @@
   "description": "Yet another API framework",
   "main": "index.js",
   "scripts": {
-    "test": "NODE_ENV=test ./node_modules/.bin/mocha --recursive ./src --require=./src/test/setup.js"
+    "test": "NODE_ENV=test nyc ./node_modules/.bin/_mocha --recursive ./src --require=./src/test/setup.js"
   },
   "repository": {
     "type": "git",
@@ -26,6 +26,7 @@
   "devDependencies": {
     "chai": "^3.5.0",
     "mocha": "^3.2.0",
+    "nyc": "^10.2.0",
     "sinon": "^2.0.0",
     "supertest": "^3.0.0"
   },
