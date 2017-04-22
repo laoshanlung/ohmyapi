@@ -77,6 +77,17 @@ class Unauthorized extends Error {
   }
 }
 
+class InvalidInput extends Error {
+  constructor(props) {
+    super(props);
+
+    this.message = 'Invalid input';
+    this.status = 400;
+    this.code = 400;
+    this.data = props;
+  }
+}
+
 class Route {
   constructor(options = {}) {
     _.forEach(OPTIONS, (opt, name) => {
@@ -133,8 +144,9 @@ class Route {
       if (!result) throw new Unauthorized;
     }).then(() => {
       if (validate) return validate(input, args, ctx);
-      return true;
-    }).then(() => {
+      return null;
+    }).then((errors) => {
+      if (errors) throw new InvalidInput(errors);
       return handle(input, ctx);
     });
   }

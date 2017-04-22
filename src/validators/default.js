@@ -17,14 +17,10 @@ validate.validators['boolean'] = function(value, options, key, attributes, globa
   return options.message || '^Invalid boolean value';
 };
 
-
-function ValidationError(errors, options, values, args) {
-  Error.captureStackTrace(this, this.constructor);
-  this.data = errors;
-  this.message = 'Failed to validate request';
-}
-ValidationError.prototype = new Error();
-
 module.exports = function(input, args, ctx, options) {
-  return validate.async(input, args, {wrapErrors: ValidationError});
+  return validate.async(input, args).then(() => {
+    return null;
+  }).catch((error) => {
+    return error;
+  });
 };

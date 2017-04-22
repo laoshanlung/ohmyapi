@@ -70,7 +70,7 @@ describe('ohmyapi', () => {
             data: null,
             success: false,
             error: {
-              message: 'Failed to validate request',
+              message: 'Invalid input',
               data: {
                 content: ['Content can\'t be blank']
               }
