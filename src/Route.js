@@ -118,9 +118,10 @@ class Route {
     } = this;
 
     return Promise.try(() => {
-      if (filter) {
-        input = filter(input, args, ctx);
-      }
+      if (!filter) return input;
+      return filter(input, args, ctx);
+    }).then((filteredInput) => {
+      input = filteredInput;
     }).then(() => {
       if (!authenticate) return true;
       return authenticate(input, ctx);
