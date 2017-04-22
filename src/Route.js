@@ -38,7 +38,10 @@ const OPTIONS = {
     }
   },
   authorize: {
-    type: isOptionalFunction
+    type: function(value) {
+      if (!value) return true;
+      return _.isFunction(value) || _.isArray(value);
+    }
   },
   args: {
     type: function(value) {
@@ -57,6 +60,17 @@ class Unauthenticated extends Error {
     super(props);
 
     this.message = 'Unauthenticated request';
+    this.status = 403;
+    this.code = 403;
+    this.data = null;
+  }
+}
+
+class Unauthorized extends Error {
+  constructor(props) {
+    super(props);
+
+    this.message = 'Unauthorized request';
     this.status = 403;
     this.code = 403;
     this.data = null;
@@ -112,6 +126,10 @@ class Route {
       return authenticate(input, ctx);
     }).then((result) => {
       if (!result) throw new Unauthenticated;
+      if (!authorize) return true;
+      return authorize(input, ctx);
+    }).then((result) => {
+      if (!result) throw new Unauthorized;
     }).then(() => {
       if (validate) return validate(input, args, ctx);
       return true;

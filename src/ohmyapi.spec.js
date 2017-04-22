@@ -19,6 +19,14 @@ describe('ohmyapi', () => {
                 .authenticate((args, ctx) => {
                   return args.authenticated;
                 })
+                .authorize({
+                  isAuthenticated(args, ctx) {
+                    return args.authenticated;
+                  },
+                  isAdmin(args, ctx) {
+                    return args.isAdmin;
+                  }
+                })
                 .init();
       });
 
@@ -120,6 +128,51 @@ describe('ohmyapi', () => {
             },
             success: true,
             error: null
+          });
+        });
+      });
+
+      it('should reject unauthorized requests', () => {
+        return callApi(app, {
+          path: '/api/users/1/comments/1/likes',
+          method: 'put'
+        }).then((res) => {
+          expect(res.body).to.eql({
+            data: null,
+            success: false,
+            error: {
+              message: 'Unauthorized request',
+              data: null
+            }
+          });
+        });
+      });
+
+      it('should support app-level authorization', () => {
+        return callApi(app, {
+          path: '/api/users/1/comments/1/likes',
+          method: 'put',
+          data: {
+            isAdmin: true
+          }
+        }).then((res) => {
+          expect(res.body.data.args).to.eql({
+            isAdmin: true
+          });
+        });
+      });
+
+      it('should support route-level authorization', () => {
+        return callApi(app, {
+          path: '/api/users/1/comments/1/likes',
+          method: 'put',
+          data: {
+            test: true
+          }
+        }).then((res) => {
+          expect(res.body.data.args).to.eql({
+            isAdmin: false,
+            test: true
           });
         });
       });

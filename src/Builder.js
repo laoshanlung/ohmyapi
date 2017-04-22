@@ -3,7 +3,8 @@ const Route = require('./Route'),
       fs = require('fs'),
       engines = require('./engines'),
       validators = require('./validators'),
-      filters = require('./filters');
+      filters = require('./filters'),
+      Promise = require('bluebird');
 
 class Builder {
   constructor(routes) {
@@ -82,13 +83,41 @@ class Builder {
 
   authorize(auth) {
     if (
-      !_.isFunction(auth) &&
-      !_.isObject(auth)
-    ) throw new Error('Authorize must be an array, an object or a function');
+      _.isArray(auth)
+      || !_.isObject(auth)
+    ) throw new Error('Authorize must be an object');
 
     this._authorize = auth;
 
     return this;
+  }
+
+  _authorizeRoute(route) {
+    const appAuthorization = this._authorize || {};
+
+    const routeAuthorization = _.chain(
+      _.isArray(route.authorize) ?
+      route.authorize : [route.authorize]
+    ).compact()
+    .filter((auth) => {
+      return (_.isString(auth) && appAuthorization[auth])
+        || _.isFunction(auth);
+    })
+    .map((auth) => {
+      if (_.isFunction(auth)) return auth;
+      return appAuthorization[auth];
+    })
+    .value();
+
+    if (_.isEmpty(routeAuthorization)) return null;
+
+    return function(args, ctx) {
+      return Promise.mapSeries(routeAuthorization, (auth) => {
+        return auth(args, ctx);
+      }).then(_.compact).then((results) => {
+        return !!results.length;
+      });
+    };
   }
 
   init() {
@@ -114,10 +143,13 @@ class Builder {
         authenticate = null;
       }
 
+      const authorize = this._authorizeRoute(route);
+
       return {
         validate: this._validate,
         filter: this._filter,
-        authenticate
+        authenticate,
+        authorize
       };
     });
 
