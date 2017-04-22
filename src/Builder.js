@@ -116,8 +116,10 @@ class Builder {
     if (_.isEmpty(routeAuthorization)) return null;
 
     return function(args, ctx) {
-      return Promise.mapSeries(routeAuthorization, (auth) => {
+      return Promise.map(routeAuthorization, (auth) => {
         return auth(args, ctx);
+      }, {
+        concurrency: 3
       }).then(_.compact).then((results) => {
         return !!results.length;
       });
