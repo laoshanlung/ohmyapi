@@ -25,6 +25,6 @@ function ValidationError(errors, options, values, args) {
 }
 ValidationError.prototype = new Error();
 
-module.exports = function(values, args, options) {
-  return validate.async(values, args, {wrapErrors: ValidationError});
+module.exports = function(input, args, ctx, options) {
+  return validate.async(input, args, {wrapErrors: ValidationError});
 };

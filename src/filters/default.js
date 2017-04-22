@@ -1,7 +1,7 @@
 const autoParse = require('auto-parse'),
       _ = require('lodash');
 
-module.exports = function(input, args, options) {
+module.exports = function(input, args, ctx, options) {
   input = autoParse(input);
 
   const valid = _.keys(args);

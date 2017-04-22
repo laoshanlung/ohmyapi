@@ -49,7 +49,9 @@ class Builder {
 
       if (!validate) throw new Error(`${name} is not a valid validate function`);
 
-      this._validate = validate;
+      this._validate = function(input, args, ctx) {
+        return validate(input, args, ctx, options);
+      };
     }
 
     return this;
@@ -67,7 +69,9 @@ class Builder {
 
       if (!filter) throw new Error(`Filter ${name} is not found`);
 
-      this._filter = filter;
+      this._filter = function(input, args, ctx) {
+        return filter(input, args, ctx, options);
+      };
     }
 
     return this;
