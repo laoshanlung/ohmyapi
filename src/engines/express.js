@@ -12,7 +12,8 @@ function buildContext(req) {
     body: _.cloneDeep(req.body),
     path: req.originalUrl,
     headers: _.cloneDeep(req.headers),
-    session: req.session
+    session: req.session,
+    method: req.method.toLowerCase()
   };
 };
 
