@@ -5,7 +5,7 @@ const Route = require('./Route'),
 describe('Route', () => {
   describe('.loadRoutes', () => {
     it('should recursively load routes from a directory', () => {
-      const routes = Route.loadRoutes(`${__dirname}/test/routes/api`);
+      const routes = Route.loadRoutes(`${__dirname}/test/routes/express/api`);
       expect(routes.length).to.equal(6);
 
       expect(_.map(routes, 'args')).to.eql([
